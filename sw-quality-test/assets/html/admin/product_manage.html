@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 - 상품 관리</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex min-h-screen bg-gray-100">
+
+  <!-- 사이드바 -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-gray-800 text-gray-100 flex flex-col">
+    <div class="p-6 text-center border-b border-gray-700">
+      <h1 class="text-xl font-bold tracking-wide">Admin Panel</h1>
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="#" class="block px-4 py-2 rounded bg-gray-700 font-semibold">📦 상품 관리</a>
+      <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700 transition">📝 게시글 관리</a>
+      <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700 transition">👤 회원 관리</a>
+      <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700 transition">🧾 Log</a>
+    </nav>
+    <div class="p-4 border-t border-gray-700 text-center text-sm text-gray-400">
+      © 2025 FleaMarket Admin
+    </div>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold">상품 관리</h2>
+      <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        + 상품 등록
+      </button>
+    </div>
+
+    <!-- 검색창 -->
+    <div class="mb-6">
+      <form class="flex gap-2 justify-center">
+        <input type="text" placeholder="상품명을 입력하세요"
+               class="w-3/4 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <button type="submit"
+                class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition">
+          검색
+        </button>
+      </form>
+    </div>
+
+    <!-- 상품 목록 테이블 -->
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full border border-gray-200">
+        <thead class="bg-gray-50 border-b">
+          <tr>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">번호</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">상품명</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">가격</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">재고</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">등록일</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">관리</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-sm text-gray-700">1</td>
+            <td class="px-4 py-3 text-sm text-gray-900">무선 마우스</td>
+            <td class="px-4 py-3 text-sm text-gray-700">₩15,000</td>
+            <td class="px-4 py-3 text-sm text-gray-700">20개</td>
+            <td class="px-4 py-3 text-sm text-gray-500">2025-10-31</td>
+            <td class="px-4 py-3 text-center">
+              <button class="px-2 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">수정</button>
+              <button class="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition ml-2">삭제</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-sm text-gray-700">2</td>
+            <td class="px-4 py-3 text-sm text-gray-900">블루투스 키보드</td>
+            <td class="px-4 py-3 text-sm text-gray-700">₩29,000</td>
+            <td class="px-4 py-3 text-sm text-gray-700">12개</td>
+            <td class="px-4 py-3 text-sm text-gray-500">2025-10-30</td>
+            <td class="px-4 py-3 text-center">
+              <button class="px-2 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">수정</button>
+              <button class="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition ml-2">삭제</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="flex justify-center mt-6 space-x-2">
+      <button class="px-3 py-1 border rounded bg-gray-200 hover:bg-gray-300">1</button>
+      <button class="px-3 py-1 border rounded hover:bg-gray-200">2</button>
+      <button class="px-3 py-1 border rounded hover:bg-gray-200">3</button>
+    </div>
+  </main>
+
+</body>
+</html>

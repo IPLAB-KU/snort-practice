@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+</head>
+<body class="flex flex-col">
+    <header class="fixed w-full top-0 shadow-md">
+        <div class="flex justify-between items-center bg-slate-400 p-4 text-white text-center">
+            <div class="">
+                <a class="mx-2" href="#">전체 상품</a>
+                <a class="mx-2" href="#">게시판</a>
+            </div>
+            <div class="">
+                <i class="fas fa-solid fa-shopping-bag text-2xl font-bold"> Vulnerable Shop</i>
+            </div>
+            <div class="">
+                <a class="mx-2" href="#">로그인</a>
+                <a class="mx-2" href="#">회원가입</a>
+            </div>
+        </div>
+    </header>
+    
+    
+    <main class="flex flex-col items-center justify-center h-screen">
+        <div class="grid grid-cols-2 gap-2 w-3/4 h-full mt-24 mb-10 shadow-md">
+            <img class="w-full h-full p-6" src="" alt="">
+            <div class="p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-3xl font-bold">Product</h3>
+                    <h3 class="text-2xl font-bold text-red-400 mt-3">10,000원</h3>
+                </div>
+                <div>
+                    <button class="bg-orange-500 text-white p-2 pl-4 pr-4 rounded-xl">장바구니 담기</button>
+                    <button class="bg-blue-500 text-white p-2 pl-4 pr-4 rounded-xl">바로구매</button>
+                </div>
+            </div>
+            <div class="col-span-2 p-6">
+                <hr class="h-px my-4 border-0 bg-slate-200">
+                <h3 class="text-xl font-bold">상품 설명</h3>
+                <div>
+                    test
+                </div>
+        </div>
+    </main>
+    
+    <footer class="bg-slate-400 text-white text-center p-4">
+        &copy; 2025 Vulnerable Shop. All rights reserved.
+    </footer>
+</body>
+</html>

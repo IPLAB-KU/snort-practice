@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+</head>
+<body class="flex flex-col">
+    <header class="fixed w-full top-0 shadow-md">
+        <div class="flex justify-between items-center bg-slate-400 p-4 text-white text-center">
+            <div class="">
+                <a class="mx-2" href="#">전체 상품</a>
+                <a class="mx-2" href="#">게시판</a>
+            </div>
+            <div class="">
+                <i class="fas fa-solid fa-shopping-bag text-2xl font-bold"> Vulnerable Shop</i>
+            </div>
+            <div class="">
+                <a class="mx-2" href="#">로그인</a>
+                <a class="mx-2" href="#">회원가입</a>
+            </div>
+        </div>
+    </header>
+    
+    
+    <main class="flex flex-row justify-center h-screen py-20">
+        <div class="w-full max-w-7xl bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold text-center py-6">게시판</h1>
+            <table class="w-full border-t">
+                <tr class="border-b">
+                    <th class="px-4 py-2 text-center">번호</th>
+                    <th class="px-4 py-2 text-center">제목</th>
+                    <th class="px-4 py-2 text-center">작성자</th>
+                    <th class="px-4 py-2 text-center">작성일</th>
+                </tr>
+                <tr class="border-b hover:bg-gray-100 cursor-pointer">
+                    <td class="px-4 py-2 text-center">1</td>
+                    <td class="px-4 py-2 text-left">첫 번째 게시글</td>
+                    <td class="px-4 py-2 text-center">admin</td>
+                    <td class="px-4 py-2 text-center">2024-01-01</td>
+                </tr>
+                <tr class="border-b hover:bg-gray-100 cursor-pointer">
+                    <td class="px-4 py-2 text-center">2</td>
+                    <td class="px-4 py-2 text-left">두 번째 게시글</td>
+                    <td class="px-4 py-2 text-center">user1</td>
+                    <td class="px-4 py-2 text-center">2024-01-02</td>
+                </tr>
+            </table>
+        </div>
+    </main>
+    
+    <footer class="bg-slate-400 text-white text-center p-4">
+        &copy; 2025 Vulnerable Shop. All rights reserved.
+    </footer>
+</body>
+</html>

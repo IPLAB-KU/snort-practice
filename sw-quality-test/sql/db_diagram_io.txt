@@ -1,0 +1,132 @@
+// Vulnerable Shop ERD (MySQL) — logical refs only (no FK constraints in DB)
+
+Table users {
+  id              bigint [pk, increment]
+  email           varchar(255) [not null, unique]
+  password        varchar(255) [not null]
+  name            varchar(100) [not null]
+  phone           varchar(30)
+  address         varchar(255)
+  points          int [not null, default: 0] // 포인트 잔액
+  status          user_status [not null, default: 'active']
+  last_login_at   datetime
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime [not null, default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+}
+
+Table admins {
+  id              bigint [pk, increment]
+  email           varchar(255) [not null, unique]
+  password        varchar(255) [not null]
+  name            varchar(100) [not null]
+  role            admin_role [not null, default: 'manager']
+  status          admin_status [not null, default: 'active']
+  last_login_at   datetime
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime [not null, default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+}
+
+Table products {
+  id              bigint [pk, increment]
+  name            varchar(200) [not null]
+  price           int [not null]            // 원화 정수
+  stock           int [not null, default: 0]
+  image_url       varchar(255)
+  description     text
+  is_active       boolean [not null, default: true]
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime [not null, default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+}
+
+Table board_posts {
+  id              bigint [pk, increment]
+  title           varchar(200) [not null]
+  content         mediumtext [not null]
+  author_user_id  bigint                      // nullable (게스트 글 허용)
+  author_name     varchar(100)                // nullable (닉네임/게스트)
+  views           int [not null, default: 0]
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at      datetime [not null, default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+}
+
+Table board_comments {
+  id              bigint [pk, increment]
+  post_id         bigint [not null]
+  author_user_id  bigint                      // nullable
+  author_name     varchar(100)                // nullable
+  content         text [not null]
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table cart {
+  id              bigint [pk, increment]
+  user_id         bigint [not null]
+  product_id      bigint [not null]
+  quantity        int [not null, default: 1]
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table orders {
+  id               bigint [pk, increment]
+  order_number     varchar(40) [not null, unique]
+  user_id          bigint [not null]
+  total_price      int [not null]            // 상품합계 + 배송비
+  shipping_fee     int [not null, default: 0]
+  paid_points      int [not null, default: 0] // 사용 포인트
+  payment_method   payment_method [not null, default: 'CARD']
+  status           order_status [not null, default: 'PENDING']
+
+  receiver_name    varchar(100) [not null]
+  receiver_phone   varchar(30)  [not null]
+  receiver_address varchar(255) [not null]
+  delivery_request varchar(255)              // nullable
+
+  created_at       datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at       datetime [not null, default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+}
+
+Table order_items {
+  id              bigint [pk, increment]
+  order_id        bigint [not null]
+  product_id      bigint                      // nullable (상품 삭제 대비 스냅샷)
+  product_name    varchar(200) [not null]
+  option_info     varchar(200)                // nullable
+  quantity        int [not null]
+  price           int [not null]              // 주문 당시 단가(스냅샷)
+}
+
+Table point_history {
+  id              bigint [pk, increment]
+  user_id         bigint [not null]
+  type            point_type [not null]
+  delta           int [not null]              // +적립 / -차감
+  balance_after   int [not null]              // 적용 후 잔액
+  ref_type        ref_type [default: 'ETC']
+  ref_id          bigint                      // orders.id 등 (nullable)
+  memo            varchar(255)                // nullable
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table audit_logs {
+  id              bigint [pk, increment]
+  actor_type      actor_type [not null]       // USER/ADMIN/SYSTEM
+  actor_id        bigint                      // nullable (SYSTEM 등)
+  action          varchar(100) [not null]
+  detail          text
+  ip              varchar(45)
+  ua              varchar(255)
+  created_at      datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+// ---------- Logical relationships (for diagram only; no FK in DB) ----------
+Ref: users.id < board_posts.author_user_id
+Ref: users.id < board_comments.author_user_id
+Ref: users.id < cart.user_id
+Ref: users.id < orders.user_id
+Ref: users.id < point_history.user_id
+
+Ref: products.id < cart.product_id
+Ref: products.id < order_items.product_id
+
+Ref: board_posts.id < board_comments.post_id
+Ref: orders.id < order_items.order_id
