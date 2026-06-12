@@ -38,6 +38,15 @@ Defense Team은 강사가 제공한 계정으로 서버에 접속한 뒤 Snort �
 
 ## SSH Connection
 
+공용 계정 정보는 다음과 같습니다.
+
+| 사용자 이름 | 비밀번호 |
+|---|---|
+| `student01` | `student01` |
+| `student02` | `student02` |
+| `student03` | `student03` |
+| `student04` | `student04` |
+
 Defense Team은 터미널에서 다음 형식으로 Ubuntu 서버에 접속합니다.
 
 ```bash
