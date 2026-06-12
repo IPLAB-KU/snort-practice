@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>IDPS 시뮬레이터</title>
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    background: #1b1f23;
+    color: #e6edf3;
+    margin: 0;
+    padding: 24px;
+    max-width: 900px;
+  }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 16px; }
+  h2 { font-size: 15px; font-weight: 500; margin: 24px 0 8px; color:#c9d1d9; }
+  .btns { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  button {
+    background:#2d333b; color:#e6edf3; border:1px solid #444c56;
+    padding:10px 16px; border-radius:6px; cursor:pointer; font-size:14px;
+  }
+  button:hover { background:#3a4148; }
+  button.primary { background:#1f6feb; border-color:#1f6feb; }
+  button.primary:hover { background:#388bfd; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  .stat { background:#22272e; border-radius:8px; padding:14px; }
+  .stat .label { font-size:12px; color:#8b949e; margin-bottom:6px; }
+  .stat .value { font-size:24px; font-weight:600; }
+  .green{color:#3fb950;} .amber{color:#d29922;} .red{color:#f85149;}
+  .rules { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .rule { padding:8px 12px; border-radius:6px; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .rule.block { background:#3d1418; color:#ffb4ab; }
+  .rule.alert { background:#3d2e0a; color:#ffd479; }
+  .rule .desc { flex:1; }
+  .rule button { padding:4px 10px; font-size:12px; background:transparent; border:1px solid currentColor; }
+  #log {
+    font-family: Consolas, monospace; font-size:12px; line-height:1.8;
+    background:#0d1117; border-radius:8px; padding:12px; height:280px;
+    overflow-y:auto; display:flex; flex-direction:column-reverse;
+    border:1px solid #30363d;
+  }
+  .row { padding:4px 8px; border-radius:4px; white-space:nowrap; overflow:hidden; }
+  .row.allow { color:#3fb950; }
+  .row.alert { color:#d29922; }
+  .row.block { color:#f85149; }
+  .sectionLabel { font-size:13px; color:#8b949e; margin-bottom:8px; }
+  .ruleForm {
+    background:#22272e; border-radius:8px; padding:14px; margin-bottom:20px;
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+  }
+  .ruleForm .full { grid-column: 1 / -1; }
+  .ruleForm label { font-size:12px; color:#8b949e; display:block; margin-bottom:4px; }
+  .ruleForm input, .ruleForm select {
+    width:100%; padding:8px; border-radius:6px; border:1px solid #444c56;
+    background:#1b1f23; color:#e6edf3; font-size:13px; box-sizing:border-box;
+  }
+  .ruleForm .hint { font-size:11px; color:#6e7681; margin-top:2px; }
+</style>
+</head>
+<body>
+<h1>IDPS 시뮬레이터 (침입 탐지 및 차단 시스템)</h1>
+
+<div class="btns">
+  <button id="genBtn">▶ 패킷 생성</button>
+  <button id="attackBtn">⚠ 공격 트래픽 주입</button>
+  <button id="resetBtn">↻ 통계/로그 초기화</button>
+  <button id="reportBtn" class="primary">⬇ 보고서 다운로드 (.doc)</button>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="label">총 패킷</div><div class="value" id="statTotal">0</div></div>
+  <div class="stat"><div class="label">정상 허용</div><div class="value green" id="statAllow">0</div></div>
+  <div class="stat"><div class="label">탐지(경고)</div><div class="value amber" id="statAlert">0</div></div>
+  <div class="stat"><div class="label">차단</div><div class="value red" id="statBlock">0</div></div>
+</div>
+
+<h2>탐지 규칙 (룰셋)</h2>
+<div class="rules" id="rules"></div>
+
+<div class="ruleForm">
+  <div>
+    <label>규칙 ID</label>
+    <input type="text" id="newId" placeholder="예: GEOBLOCK">
+  </div>
+  <div>
+    <label>동작</label>
+    <select id="newAction">
+      <option value="BLOCK">BLOCK (차단)</option>
+      <option value="ALERT">ALERT (경고)</option>
+    </select>
+  </div>
+  <div class="full">
+    <label>설명</label>
+    <input type="text" id="newDesc" placeholder="예: 특정 국가 IP 차단">
+  </div>
+  <div>
+    <label>대상 프로토콜 (선택)</label>
+    <select id="newProto">
+      <option value="">전체</option>
+      <option value="TCP">TCP</option>
+      <option value="UDP">UDP</option>
+      <option value="HTTP">HTTP</option>
+      <option value="SSH">SSH</option>
+      <option value="ICMP">ICMP</option>
+    </select>
+  </div>
+  <div>
+    <label>포트 조건 (선택)</label>
+    <select id="newPortCond">
+      <option value="">없음</option>
+      <option value="gt1024">1024 초과</option>
+      <option value="le1024">1024 이하</option>
+      <option value="eq22">22번 포트(SSH)</option>
+      <option value="eq80">80번 포트(HTTP)</option>
+    </select>
+    <div class="hint">패킷의 목적지 포트 조건으로 매칭합니다</div>
+  </div>
+  <div class="full">
+    <button id="addRuleBtn" class="primary" style="width:100%;">+ 규칙 추가</button>
+  </div>
+</div>
+
+<h2>패킷 로그</h2>
+<div id="log"></div>
+
+<script>
+const defaultRules = [
+  {id:'PORTSCAN', desc:'동일 IP에서 다수 포트 접근 (포트 스캔)', action:'BLOCK', builtin:'scan'},
+  {id:'SQLI', desc:"HTTP 요청에 SQL Injection 패턴 포함", action:'BLOCK', builtin:'sqli'},
+  {id:'BRUTEFORCE', desc:'짧은 시간 내 반복 로그인 시도', action:'ALERT', builtin:'brute'},
+  {id:'MALFORMED', desc:'비정상 패킷 플래그 조합', action:'ALERT', builtin:'malformed'},
+];
+
+let rules = JSON.parse(JSON.stringify(defaultRules));
+let stats = {total:0, allow:0, alert:0, block:0};
+let logHistory = [];
+
+const rulesEl = document.getElementById('rules');
+const logEl = document.getElementById('log');
+
+function matchPacket(p, r){
+  if(r.builtin==='scan' && !p.scan) return false;
+  if(r.builtin==='sqli' && !(p.payload && p.payload.includes("' OR"))) return false;
+  if(r.builtin==='brute' && !(p.proto==='SSH' && p.repeat)) return false;
+  if(r.builtin==='malformed' && !p.malformed) return false;
+
+  if(r.proto && p.proto !== r.proto) return false;
+  if(r.portCond){
+    if(r.portCond==='gt1024' && !(p.port>1024)) return false;
+    if(r.portCond==='le1024' && !(p.port<=1024)) return false;
+    if(r.portCond==='eq22' && p.port!==22) return false;
+    if(r.portCond==='eq80' && p.port!==80) return false;
+  }
+  if(!r.builtin && !r.proto && !r.portCond) return false;
+  return true;
+}
+
+function renderRules(){
+  rulesEl.innerHTML='';
+  rules.forEach((r, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'rule ' + (r.action==='BLOCK' ? 'block':'alert');
+    const condParts = [];
+    if(r.proto) condParts.push('프로토콜=' + r.proto);
+    if(r.portCond){
+      const labels = {gt1024:'포트>1024', le1024:'포트<=1024', eq22:'포트=22', eq80:'포트=80'};
+      condParts.push(labels[r.portCond]);
+    }
+    const condStr = condParts.length ? ` [조건: ${condParts.join(', ')}]` : '';
+    div.innerHTML = `<span class="desc"><b>${r.id}</b> — ${r.desc}${condStr}</span><span>${r.action}</span>`;
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '삭제';
+    delBtn.onclick = ()=>{ rules.splice(idx,1); renderRules(); };
+    div.appendChild(delBtn);
+    rulesEl.appendChild(div);
+  });
+}
+renderRules();
+
+document.getElementById('addRuleBtn').onclick = ()=>{
+  const id = document.getElementById('newId').value.trim();
+  const desc = document.getElementById('newDesc').value.trim();
+  const action = document.getElementById('newAction').value;
+  const proto = document.getElementById('newProto').value;
+  const portCond = document.getElementById('newPortCond').value;
+  if(!id || !desc){ alert('규칙 ID와 설명을 입력하세요.'); return; }
+  if(!proto && !portCond){ alert('대상 프로토콜 또는 포트 조건을 최소 1개 이상 지정하세요.'); return; }
+  rules.push({id, desc, action, proto: proto||null, portCond: portCond||null});
+  document.getElementById('newId').value='';
+  document.getElementById('newDesc').value='';
+  renderRules();
+};
+
+const srcIPs = ['192.168.1.45','10.0.0.12','203.0.113.7','172.16.5.99','198.51.100.23'];
+const dstIPs = ['10.0.0.1','10.0.0.2','10.0.0.5'];
+const protos = ['TCP','UDP','HTTP','SSH','ICMP'];
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function makePacket(forceAttack){
+  let p = {
+    src: rnd(srcIPs), dst: rnd(dstIPs), proto: rnd(protos),
+    port: Math.floor(Math.random()*65535)+1,
+    scan:false, payload:null, repeat:false, malformed:false
+  };
+  if(forceAttack){
+    const types = ['scan','sqli','brute','malformed'];
+    const t = rnd(types);
+    if(t==='scan'){ p.scan=true; p.proto='TCP'; }
+    if(t==='sqli'){ p.proto='HTTP'; p.payload="id=1' OR '1'='1"; p.port=80; }
+    if(t==='brute'){ p.proto='SSH'; p.repeat=true; p.port=22; }
+    if(t==='malformed'){ p.malformed=true; p.proto='TCP'; }
+  }
+  return p;
+}
+
+function evaluate(p){
+  for(const r of rules){
+    if(matchPacket(p, r)) return r;
+  }
+  return null;
+}
+
+function addLog(p, rule){
+  stats.total++;
+  let cls='allow', tag='허용';
+  if(rule){
+    if(rule.action==='BLOCK'){ stats.block++; cls='block'; tag='차단: '+rule.id; }
+    else { stats.alert++; cls='alert'; tag='경고: '+rule.id; }
+  } else {
+    stats.allow++;
+  }
+  document.getElementById('statTotal').textContent = stats.total;
+  document.getElementById('statAllow').textContent = stats.allow;
+  document.getElementById('statAlert').textContent = stats.alert;
+  document.getElementById('statBlock').textContent = stats.block;
+
+  const portInfo = p.proto==='HTTP' && p.payload ? ` payload="${p.payload}"` : '';
+  const text = `[${tag}] ${p.src} -> ${p.dst}:${p.port} (${p.proto})${portInfo}`;
+
+  const row = document.createElement('div');
+  row.className = 'row ' + cls;
+  row.textContent = text;
+  logEl.insertBefore(row, logEl.firstChild);
+  while(logEl.children.length > 60) logEl.removeChild(logEl.lastChild);
+
+  logHistory.push({time: new Date(), text, cls, tag});
+}
+
+document.getElementById('genBtn').onclick = ()=>{
+  for(let i=0;i<5;i++){
+    const p = makePacket(false);
+    addLog(p, evaluate(p));
+  }
+};
+document.getElementById('attackBtn').onclick = ()=>{
+  for(let i=0;i<5;i++){
+    const p = makePacket(true);
+    addLog(p, evaluate(p));
+  }
+};
+document.getElementById('resetBtn').onclick = ()=>{
+  stats = {total:0, allow:0, alert:0, block:0};
+  logEl.innerHTML='';
+  logHistory = [];
+  document.getElementById('statTotal').textContent = 0;
+  document.getElementById('statAllow').textContent = 0;
+  document.getElementById('statAlert').textContent = 0;
+  document.getElementById('statBlock').textContent = 0;
+};
+
+document.getElementById('reportBtn').onclick = ()=>{
+  const now = new Date();
+  const dateStr = now.toLocaleString('ko-KR');
+
+  let rulesRows = rules.map(r=>{
+    const condParts = [];
+    if(r.proto) condParts.push('프로토콜=' + r.proto);
+    if(r.portCond){
+      const labels = {gt1024:'포트>1024', le1024:'포트<=1024', eq22:'포트=22', eq80:'포트=80'};
+      condParts.push(labels[r.portCond]);
+    }
+    if(r.builtin){
+      const blabels = {scan:'포트 스캔 탐지', sqli:'SQL Injection 패턴', brute:'SSH 반복 로그인', malformed:'비정상 패킷 플래그'};
+      condParts.push(blabels[r.builtin]);
+    }
+    return `<tr><td>${r.id}</td><td>${r.desc}</td><td>${r.action}</td><td>${condParts.join(', ') || '-'}</td></tr>`;
+  }).join('');
+
+  let logRows = logHistory.map(l=>{
+    return `<tr><td>${l.time.toLocaleTimeString('ko-KR')}</td><td>${l.tag}</td><td>${l.text.replace(/^\[.*?\]\s*/, '')}</td></tr>`;
+  }).join('');
+
+  const html = `
+  <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset="utf-8">
+  <style>
+    body { font-family: '맑은 고딕', Arial, sans-serif; font-size: 11pt; }
+    h1 { font-size: 20pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+    h2 { font-size: 14pt; margin-top: 24px; color: #1f4e79; }
+    table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    th, td { border: 1px solid #999; padding: 6px 8px; font-size: 10pt; text-align: left; }
+    th { background: #1f4e79; color: #fff; }
+    .summary td { text-align: center; font-weight: bold; }
+    .meta { color: #555; font-size: 10pt; }
+  </style>
+  </head>
+  <body>
+    <h1>IDPS 침입 탐지/차단 시뮬레이션 보고서</h1>
+    <p class="meta">생성 일시: ${dateStr}</p>
+
+    <h2>1. 요약 통계</h2>
+    <table class="summary">
+      <tr><th>총 패킷</th><th>정상 허용</th><th>탐지(경고)</th><th>차단</th></tr>
+      <tr><td>${stats.total}</td><td>${stats.allow}</td><td>${stats.alert}</td><td>${stats.block}</td></tr>
+    </table>
+
+    <h2>2. 적용된 탐지 규칙 (룰셋)</h2>
+    <table>
+      <tr><th>규칙 ID</th><th>설명</th><th>동작</th><th>매칭 조건</th></tr>
+      ${rulesRows || '<tr><td colspan="4">등록된 규칙이 없습니다.</td></tr>'}
+    </table>
+
+    <h2>3. 패킷 로그 상세</h2>
+    <table>
+      <tr><th>시간</th><th>결과</th><th>패킷 정보</th></tr>
+      ${logRows || '<tr><td colspan="3">기록된 로그가 없습니다.</td></tr>'}
+    </table>
+  </body>
+  </html>`;
+
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `IDPS_Report_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+</script>
+</body>
+</html>
